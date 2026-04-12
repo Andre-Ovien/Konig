@@ -1,0 +1,1 @@
+Konig is a full-stack agricultural e-commerce platform that eliminates the middleman between local farmers and consumers. Buyers get access to fresh, locally sourced produce at fair prices, giving the platform a verified digital storefront with direct payment and logistics support. Delivery agents manage pickups and drop-offs through a dedicated mobile flow.
