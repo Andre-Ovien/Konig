@@ -4,8 +4,8 @@ from django.conf import settings
 
 @shared_task
 def send_verification_email(email, code):
-    subject = "Verify your Venra account"
-    message = f"Your Venra verification code is: {code}"
+    subject = "Verify your Email account"
+    message = f"Your verification code is: {code}"
     sender = settings.DEFAULT_FROM_EMAIL
     connection = get_connection()
     connection.open()
