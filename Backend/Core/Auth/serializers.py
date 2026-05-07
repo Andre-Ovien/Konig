@@ -7,6 +7,7 @@ import random
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db import transaction
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -23,24 +24,34 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
         extra_kwargs = {
-            'password': ('write_only: True'),
-            'email': {'required: True'}
+            'password': {'write_only': True},
+            'email': {'required': True}
         }
 
-        def validate_password(self, value):
-            validate_password(value)
-            return value
+    def validate_password(self, value):
+        validate_password(value)
+        return value
         
-        def create(self, validated_data):
+    def create(self, validated_data):
+        role = self.context.get("role", User.Role.CUSTOMER)
+        if role not in User.Role.values:
+            raise serializers.ValidationError(
+                {
+                    "role": "Invalid role."
+                }
+            )
+        with transaction.atomic():
             user = User.objects.create_user(**validated_data)
+            user.role = role
             user.is_active = False
             user.save()
 
             verification = EmailVerification.objects.create(user=user, purpose='email_verification')
             verification.generate_code()
-            send_verification_email.delay(user.email, verification.code)
+            print(f"🔑 VERIFICATION CODE for {user.email}: {verification.code}")
+        send_verification_email.delay(user.email, verification.code)
 
-            return user
+        return user
         
 
 class VerifyEmailSerializer(serializers.Serializer):
