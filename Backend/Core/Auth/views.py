@@ -5,6 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import throttling
+from .models import User
 
 # Create your views here.
 
@@ -15,19 +16,37 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
-class RegisterView(APIView):
+class BaseRegisterView(APIView):
+    role = None
+
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
+        serializer = RegisterSerializer(
+            data=request.data,
+            context={"role": self.role}
+        )
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
         return Response(
             {
-                'user': RegisterSerializer(user).data,
-                'message': 'Account successfully created, kindly verify your email address to log in.'
+                "user": RegisterSerializer(user).data,
+                "message": "Account successfully created, kindly verify your email address to log in."
             },
             status=status.HTTP_201_CREATED
         )
+
+
+class RiderRegisterView(BaseRegisterView):
+    role = User.Role.RIDER
+
+
+class VendorRegisterView(BaseRegisterView):
+    role = User.Role.VENDOR
+
+
+class CustomerRegisterView(BaseRegisterView):
+    role = User.Role.CUSTOMER
+
     
 class VerifyEmailView(APIView):
     def post(self, request):
@@ -38,7 +57,7 @@ class VerifyEmailView(APIView):
         return Response(
             {
                 "message": "Email verified successfully.",
-                "tokens": tokens,
+                "tokens": tokens, 
             },
             status=status.HTTP_200_OK
         )

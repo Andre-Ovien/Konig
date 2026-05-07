@@ -29,8 +29,18 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
     
 class User(AbstractBaseUser, PermissionsMixin):
+    class Role(models.TextChoices):
+        CUSTOMER = "CUSTOMER", "Customer"
+        VENDOR = "VENDOR", "Vendor"
+        RIDER = "RIDER", "Rider"
     email = models.EmailField(unique=True, null=False)
     name = models.CharField(max_length=253, blank=True, null=True)
+    
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.CUSTOMER
+    )
 
     is_staff = models.BooleanField(
         gettext_lazy('Staff Status'), default=False,
